@@ -3,7 +3,7 @@
     <div class="usuarios-panel">
       <ButtonPrime label="Nuevo" icon="pi pi-plus" @click="nuevoUsuario" class="mb-3" />
 
-      <!-- Modal Guardar/Editar -->
+     
       <DialogModal
         v-model:visible="activarModalNuevo"
         maximizable
@@ -41,7 +41,6 @@
         </div>
       </DialogModal>
 
-      <!-- Tabla -->
       <DataTable
         :value="usuarios"
         tableStyle="min-width: 50rem"
@@ -66,7 +65,7 @@
         </ColumnPrime>
       </DataTable>
 
-      <!-- ConfirmDialog para confirmación de eliminación -->
+     
       <ConfirmDialog />
     </div>
   </div>
@@ -104,7 +103,7 @@ export default {
   },
 
   methods: {
-    // Obtener todos los usuarios
+  
     getAllUsuarios: async function() {
       const url =
         "https://cobuses.com.co/APIV2/model/usuarios.php?dato=getallusuarios";
@@ -116,7 +115,7 @@ export default {
       }
     },
 
-    // Guardar usuario
+    
     guardarUsuario: async function() {
       if (this.usuario.clave !== this.usuario.repetirClave) {
         alert("Las contraseñas no coinciden.");
@@ -143,7 +142,7 @@ export default {
       }
     },
 
-    // Actualizar usuario
+    
     updateUsuario: async function() {
       if (this.usuario.clave !== this.usuario.repetirClave) {
         alert("Las contraseñas no coinciden.");
@@ -170,7 +169,7 @@ export default {
       }
     },
 
-    // Eliminar usuario
+    
     eliminarUsuario: async function(cedula) {
       const url =
         "https://cobuses.com.co/APIV2/model/usuarios.php?dato=deleteusuario";
@@ -183,7 +182,7 @@ export default {
       }
     },
 
-    // Confirmar eliminación del usuario
+  
     confirmarEliminacion(usuario) {
       this.$confirm.require({
         message: `¿Está seguro que desea eliminar a ${usuario.nombre}?`,
@@ -200,21 +199,20 @@ export default {
       });
     },
 
-    // Ver detalles del usuario para actualizar
     ver(usuario) {
       this.usuario = { ...usuario };
       this.activarModalNuevo = true;
       this.accion = "Actualizar";
     },
 
-    // Crear nuevo usuario
+    
     nuevoUsuario() {
       this.resetFormulario();
       this.activarModalNuevo = true;
       this.accion = "Guardar";
     },
 
-    // Restablecer formulario
+    
     resetFormulario() {
       this.usuario = {
         cedula: 0,

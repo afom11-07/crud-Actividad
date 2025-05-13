@@ -7,28 +7,26 @@ import 'primeflex/primeflex.css';
 import Aura from "@primevue/themes/aura";
 import App from "./App.vue";
 
-// PrimeVue Components
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import ConfirmDialog from 'primevue/confirmdialog'; // ✅ componente visual
-import ConfirmationService from 'primevue/confirmationservice'; // ✅ servicio lógico
+import ConfirmDialog from 'primevue/confirmdialog'; 
+import ConfirmationService from 'primevue/confirmationservice'; 
 
 const app = createApp(App);
 
-// Registrar componentes globales
+
 app.component("InputText", InputText);
 app.component("PassWord", Password);
 app.component("DialogModal", Dialog);
 app.component("ButtonPrime", Button);
 app.component("DataTable", DataTable);
 app.component("ColumnPrime", Column);
-app.component("ConfirmDialog", ConfirmDialog); // ✅ componente visual registrado
+app.component("ConfirmDialog", ConfirmDialog); 
 
-// Usar servicios
 app.use(PrimeVue, {
     theme: {
         preset: Aura
@@ -36,9 +34,9 @@ app.use(PrimeVue, {
 });
 app.use(router);
 app.use(VueAxios, axios);
-app.use(ConfirmationService); // ✅ servicio de confirmación registrado
+app.use(ConfirmationService); 
 
-// Montar la app
+
 app.mount("#app");
 
 export { app };
