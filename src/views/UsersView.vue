@@ -1,211 +1,266 @@
 <template>
-    <div class="usuarios">
-        <div class="usuarios-panel">
+  <div class="usuarios">
+    <div class="usuarios-panel">
+      <ButtonPrime label="Nuevo" icon="pi pi-plus" @click="nuevoUsuario" class="mb-3" />
 
-            <ButtonPrime label="Nuevo" @click="nuevoUsuario()" />
-
-            <DialogModal v-model:visible="activarModalNuevo" maximizable modal header="Nuevo Usuario"
-                :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-
-                <div>
-                    <InputText class="w-full mb-2" type="text" v-model="usuario.cedula" placeholder="Digite cédula" />
-                    <InputText class="w-full mb-2" type="text" v-model="usuario.nombre" placeholder="Digite Nombre" />
-                    <InputText class="w-full mb-2" type="text" v-model="usuario.usuario" placeholder="Digite usuario" />
-                    <InputText class="w-full mb-2" type="password" v-model="usuario.clave" placeholder="Digite clave" />
-                    <InputText class="w-full mb-2" type="password" v-model="usuario.repetirClave"
-                        placeholder="Repita clave" />
-                    <InputText class="w-full mb-2" type="text" v-model="usuario.genero" placeholder="Digite genero" />
-                    <InputText class="w-full mb-2" type="text" v-model="usuario.programa"
-                        placeholder="Digite programa" />
-                    <ButtonPrime @click="guardarUsuario()"  label="Guardar" severity="success">{{ accion }}</ButtonPrime>
-                </div>
-
-            </DialogModal>
-
-            <DataTable :value="usuarios" tableStyle="min-width: 50rem">
-                <ColumnPrime field="cedula" header="N° Documento"></ColumnPrime>
-                <ColumnPrime field="nombre" header="Nombre"></ColumnPrime>
-                <ColumnPrime field="usuario" header="Usuario"></ColumnPrime>
-                <ColumnPrime field="programa" header="Inscrito ha:"></ColumnPrime>
-                <ColumnPrime header="Acción:">
-                    <template #body="slotProps">
-                        <ButtonPrime @click="ver(slotProps.data)" label="Ver" severity="success" />
-                    </template>
-                </ColumnPrime>
-            </DataTable>
+      <!-- Modal Guardar/Editar -->
+      <DialogModal
+        v-model:visible="activarModalNuevo"
+        maximizable
+        modal
+        :header="accion + ' Usuario'"
+        :style="{ width: '50rem' }"
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+      >
+        <div class="p-fluid">
+          <InputText class="mb-2" v-model="usuario.cedula" placeholder="Digite cédula" />
+          <InputText class="mb-2" v-model="usuario.nombre" placeholder="Digite nombre" />
+          <InputText class="mb-2" v-model="usuario.usuario" placeholder="Digite usuario" />
+          <Password class="mb-2" v-model="usuario.clave" toggleMask placeholder="Digite clave" />
+          <Password
+            class="mb-2"
+            v-model="usuario.repetirClave"
+            toggleMask
+            placeholder="Repita clave"
+          />
+          <Dropdown
+            class="mb-2"
+            v-model="usuario.genero"
+            :options="generos"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione género"
+          />
+          <InputText class="mb-2" v-model="usuario.programa" placeholder="Digite programa" />
+          <ButtonPrime
+            @click="accion === 'Guardar' ? guardarUsuario() : updateUsuario()"
+            :label="accion"
+            severity="success"
+            icon="pi pi-save"
+          />
         </div>
+      </DialogModal>
 
+      <!-- Tabla -->
+      <DataTable
+        :value="usuarios"
+        tableStyle="min-width: 50rem"
+        stripedRows
+        responsiveLayout="scroll"
+      >
+        <ColumnPrime field="cedula" header="N° Documento" />
+        <ColumnPrime field="nombre" header="Nombre" />
+        <ColumnPrime field="usuario" header="Usuario" />
+        <ColumnPrime field="programa" header="Inscrito a" />
+        <ColumnPrime header="Acción">
+          <template #body="slotProps">
+            <div class="flex gap-2 justify-content-center">
+              <ButtonPrime icon="pi pi-eye" severity="info" @click="ver(slotProps.data)" />
+              <ButtonPrime
+                icon="pi pi-trash"
+                severity="danger"
+                @click="confirmarEliminacion(slotProps.data)"
+              />
+            </div>
+          </template>
+        </ColumnPrime>
+      </DataTable>
+
+      <!-- ConfirmDialog para confirmación de eliminación -->
+      <ConfirmDialog />
     </div>
+  </div>
 </template>
 
+
 <script>
+import { ConfirmDialog } from "primevue/confirmdialog";
+
 export default {
-    data() {
-        return {
-            usuarios: [],
-            usuario: {
-                cedula: 0,
-                nombre: "",
-                usuario: "",
-                clave: "",
-                repetirClave: "",
-                genero: "",
-                programa: ""
-            },
-            activarModalNuevo: false,
-            accion: "Guardar",
-        }
+  components: {
+    ConfirmDialog
+  },
+
+  data() {
+    return {
+      usuarios: [],
+      usuario: {
+        cedula: 0,
+        nombre: "",
+        usuario: "",
+        clave: "",
+        repetirClave: "",
+        genero: "",
+        programa: ""
+      },
+      activarModalNuevo: false,
+      accion: "Guardar",
+      generos: [
+        { label: "Masculino", value: "Masculino" },
+        { label: "Femenino", value: "Femenino" },
+        { label: "Otro", value: "Otro" }
+      ]
+    };
+  },
+
+  methods: {
+    // Obtener todos los usuarios
+    getAllUsuarios: async function() {
+      const url =
+        "https://cobuses.com.co/APIV2/model/usuarios.php?dato=getallusuarios";
+      try {
+        const response = await this.axios.get(url);
+        this.usuarios = response.data;
+      } catch (error) {
+        console.log(error);
+      }
     },
 
-    methods: {
-        getAllUsuarios: async function () {
-            let url =
-                "https://cobuses.com.co/APIV2/model/usuarios.php?dato=getallusuarios";
-            let vue = this;
-            await this.axios
-                .get(url)
-                .then(function (response) {
-                    //vue.pokemones = response.data;
-                    // console.log("RESPUESTA");
-                    // console.log(response.data);
-                    vue.usuarios = response.data
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
-                .finally(function () {
-                    console.log("Proceso terminado");
-                });
-        },
+    // Guardar usuario
+    guardarUsuario: async function() {
+      if (this.usuario.clave !== this.usuario.repetirClave) {
+        alert("Las contraseñas no coinciden.");
+        return;
+      }
 
-        guardarUsuario: async function () {
+      const url =
+        "https://cobuses.com.co/APIV2/model/usuarios.php?dato=insertusuario";
+      const datosEnviar = { ...this.usuario };
 
-            let datosEnviar = {
-                cedula: this.usuario.cedula,
-                nombre: this.usuario.nombre,
-                usuario: this.usuario.usuario,
-                clave: this.usuario.clave,
-                genero: this.usuario.genero,
-                programa: this.usuario.programa
-            }
-            let url =
-                "https://cobuses.com.co/APIV2/model/usuarios.php?dato=insertusuario";
-            let vue = this;
-            await this.axios
-                .post(url, JSON.stringify(datosEnviar))
-                .then(function (response) {
-                    if (response.status == 200) {
-                        alert("Usuario Guardado Exitosamente");
-                        vue.activarModalNuevo = false;
-                        vue.usuario = {
-                            cedula: 0,
-                            nombre: "",
-                            usuario: "",
-                            clave: "",
-                            repetirClave: "",
-                            genero: "",
-                            programa: ""
-                        };
-
-                    }
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
-                .finally(function () {
-                    console.log("Proceso terminado");
-                });
-        },
-
-        updateUsuario: async function () {
-
-            let datosEnviar = {
-                cedula: this.usuario.cedula,
-                nombre: this.usuario.nombre,
-                usuario: this.usuario.usuario,
-                clave: this.usuario.clave,
-                genero: this.usuario.genero,
-                programa: this.usuario.programa
-            }
-            let url =
-                "https://cobuses.com.co/APIV2/model/usuarios.php?dato=updateusuario";
-            let vue = this;
-            await this.axios
-                .post(url, JSON.stringify(datosEnviar))
-                .then(function (response) {
-                    if (response.status == 200) {
-                        alert("Usuario Guardado Exitosamente");
-                        vue.activarModalNuevo = false;
-                        vue.usuario = {
-                            cedula: 0,
-                            nombre: "",
-                            usuario: "",
-                            clave: "",
-                            repetirClave: "",
-                            genero: "",
-                            programa: ""
-                        };
-
-                    }
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
-                .finally(function () {
-                    console.log("Proceso terminado");
-                });
-        },
-
-        ver: function (usuario) {
-            this.activarModalNuevo = true;
-            this.accion = "Editar";
-            this.usuario = {
-                cedula: usuario.cedula,
-                nombre: usuario.nombre,
-                usuario: usuario.usuario,
-                clave: "",
-                repetirClave: "",
-                genero: usuario.genero,
-                programa: usuario.programa
-            };
-        },
-
-        guardar: function () {
-            console.log(this.usuario);
-        },
-
-        nuevoUsuario: function () {
-            this.activarModalNuevo = true;
-            this.accion = "Guardar";
-
-            this.usuario = {
-                cedula: 0,
-                nombre: "",
-                usuario: "",
-                clave: "",
-                repetirClave: "",
-                genero: "",
-                programa: ""
-            };
+      try {
+        const response = await this.axios.post(
+          url,
+          JSON.stringify(datosEnviar)
+        );
+        if (response.status === 200) {
+          alert("Usuario guardado exitosamente");
+          this.activarModalNuevo = false;
+          this.resetFormulario();
+          this.getAllUsuarios();
         }
-
-
+      } catch (error) {
+        console.log(error);
+      }
     },
 
-    created: function () {
+    // Actualizar usuario
+    updateUsuario: async function() {
+      if (this.usuario.clave !== this.usuario.repetirClave) {
+        alert("Las contraseñas no coinciden.");
+        return;
+      }
+
+      const url =
+        "https://cobuses.com.co/APIV2/model/usuarios.php?dato=updateusuario";
+      const datosEnviar = { ...this.usuario };
+
+      try {
+        const response = await this.axios.post(
+          url,
+          JSON.stringify(datosEnviar)
+        );
+        if (response.status === 200) {
+          alert("Usuario actualizado exitosamente");
+          this.activarModalNuevo = false;
+          this.resetFormulario();
+          this.getAllUsuarios();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Eliminar usuario
+    eliminarUsuario: async function(cedula) {
+      const url =
+        "https://cobuses.com.co/APIV2/model/usuarios.php?dato=deleteusuario";
+      try {
+        await this.axios.post(url, JSON.stringify({ cedula }));
+        alert("Usuario eliminado exitosamente");
         this.getAllUsuarios();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Confirmar eliminación del usuario
+    confirmarEliminacion(usuario) {
+      this.$confirm.require({
+        message: `¿Está seguro que desea eliminar a ${usuario.nombre}?`,
+        header: "Confirmar eliminación",
+        icon: "pi pi-exclamation-triangle",
+        acceptLabel: "Sí",
+        rejectLabel: "No",
+        accept: () => {
+          this.eliminarUsuario(usuario.cedula);
+        },
+        reject: () => {
+          console.log("Eliminación cancelada");
+        }
+      });
+    },
+
+    // Ver detalles del usuario para actualizar
+    ver(usuario) {
+      this.usuario = { ...usuario };
+      this.activarModalNuevo = true;
+      this.accion = "Actualizar";
+    },
+
+    // Crear nuevo usuario
+    nuevoUsuario() {
+      this.resetFormulario();
+      this.activarModalNuevo = true;
+      this.accion = "Guardar";
+    },
+
+    // Restablecer formulario
+    resetFormulario() {
+      this.usuario = {
+        cedula: 0,
+        nombre: "",
+        usuario: "",
+        clave: "",
+        repetirClave: "",
+        genero: "",
+        programa: ""
+      };
     }
-}
+  },
+
+  created() {
+    this.getAllUsuarios();
+  }
+};
 </script>
+
 
 <style scoped>
 .usuarios {
-    background-color: #F4F4F4;
+  background-color: #f4f4f4;
+  padding: 2rem 0;
 }
 
 .usuarios-panel {
-    width: 70%;
-    margin: 0 auto;
-    text-align: center;
+  width: 80%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.p-fluid > * {
+  margin-bottom: 1rem;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.justify-content-center {
+  justify-content: center;
+}
+
+.gap-2 {
+  gap: 0.5rem;
 }
 </style>
